@@ -22,7 +22,7 @@ if st.button("Find My Car"):
             st.write(f"### {car['make']} {car['model']}")
             st.write(f"**Price**: ${car['price']:,.2f}")
             st.write(f"**Seats**: {car['seats']}")
-            st.write(f"**MPG**: {car['mpg']}")
+            st.write(f"**L/100KM**: {car['l/100km']}")
             st.markdown("---")
     else:
         st.warning("No cars found matching your criteria. Try adjusting your budget or seats.")

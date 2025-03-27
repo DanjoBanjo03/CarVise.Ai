@@ -10,6 +10,6 @@ class Car(Base):
     model = Column(String)
     year = Column(Integer)
     price = Column(Float)
-    mpg = Column(Float)
+    'l/100km' = Column(Float)
     seats = Column(Integer)
     body_type = Column(String)
