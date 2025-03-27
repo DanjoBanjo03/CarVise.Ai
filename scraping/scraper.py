@@ -14,10 +14,11 @@ def get_autotrader_urls_safari():
     driver = Safari()
     driver.maximize_window()
     wait = WebDriverWait(driver, 15)
+    time.sleep(1)
     
     try:
         print("🌐 Opening AutoTrader.ca...")
-        driver.get("https://www.autotrader.ca/cars/?rcp=15&rcs=0&prx=100&loc=Toronto%20ON")
+        driver.get("https://www.autotrader.ca/cars/?rcp=100&rcs=0&prx=100&loc=Toronto%20ON")
         
         # Cookie handling
         try:
@@ -60,6 +61,7 @@ def get_autotrader_urls_safari():
 def scrape_car_details(driver, url):
     """Scrape individual car listing details"""
     try:
+        time.sleep(2)
         print(f"🚗 Navigating to: {url}")
         driver.get(url)
         
@@ -75,11 +77,40 @@ def scrape_car_details(driver, url):
         
         price_element = soup.find("p", class_="hero-price")
         title_element = soup.find("h1", class_='hero-title')
+
+        specs = {}
+        spec_elements = soup.select('span[id^="spec-key-"]')
+
+        for spec in spec_elements:
+            try:
+                key = spec.text.strip().lower().replace(" ", "_").replace("'", "").replace("-", "")
+                value_id = spec['id'].replace("key", "value")
+                value_element = spec.find_next('span', id=value_id)
+                
+                # Clean kilometer values
+                raw_value = value_element.find('strong').text.strip()
+                
+                # Handle all kilometer variations
+                if key in ['kilometres', 'km', 'mileage']:
+                    # Remove ALL non-numeric characters using regex
+                    cleaned_value = ''.join(filter(str.isdigit, raw_value))
+                    if cleaned_value:  # Only convert if we got digits
+                        specs[key] = int(cleaned_value)
+                    else:
+                        specs[key] = 0
+                        print(f"⚠️  Invalid kilometer value: {raw_value}")
+                else:
+                    specs[key] = raw_value  # Keep other values as-is
+                    
+            except Exception as e:
+                print(f"⚠️  Error parsing spec: {str(e)}")
+
         
         return {
             "url": url,
             "price": int(price_element.text.strip().replace(",", "")) if price_element else 0,
-            "title": title_element.text.strip() if title_element else "Title N/A"
+            "title": title_element.text.strip() if title_element else "Title N/A",
+            **specs
         }
 
     except Exception as e:
@@ -93,7 +124,7 @@ def get_autotrader_data():
         print(f"🎉 Found {len(listing_urls)} listings to scrape")
         
         car_data = []
-        for idx, url in enumerate(listing_urls[:1]):  # Test with 5 first
+        for idx, url in enumerate(listing_urls[:100]):  # Test with 5 first
             print(f"\n📋 Processing {idx+1}/{len(listing_urls)}")
             
             driver = Safari()
@@ -119,12 +150,20 @@ def save_to_csv(data):
     
     # Create directory if it doesn't exist
     os.makedirs('data', exist_ok=True)
+
+    fieldnames = set()
+    for item in valid_data:
+        fieldnames.update(item.keys())
     
     csv_path = os.path.join('data', 'car_prices.csv')
+
+    base_fields = ["url", "title", "price"]
+    ordered_fields = base_fields + [f for f in sorted(fieldnames) if f not in base_fields]
     
     with open(csv_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["url", "title", "price"], 
-                                quoting=csv.QUOTE_MINIMAL)
+        # writer = csv.DictWriter(f, fieldnames=["url", "title", "price"], 
+        #                         quoting=csv.QUOTE_MINIMAL)
+        writer = csv.DictWriter(f, fieldnames=ordered_fields, quoting=csv.QUOTE_MINIMAL)
         writer.writeheader()
         writer.writerows(valid_data)
     print(f"💾 Data saved to {csv_path}")
