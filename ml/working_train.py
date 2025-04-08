@@ -24,7 +24,8 @@ df = load_and_validate_data('../scraping/data/car_prices.csv')
 # ====================== FEATURE ENGINEERING ======================
 def extract_year(title_series):
     """Robust year extraction from titles"""
-    years = title_series.str.findall(r'(?:19|20)\d{2}').str[0]  # Finds 1900-2099
+    # Add capture group around the year pattern
+    years = title_series.str.extract(r'((?:19|20)\d{2})', expand=False)
     return pd.to_numeric(years, errors='coerce')
 
 def clean_numeric(col, dtype=float):
@@ -39,7 +40,7 @@ def clean_numeric(col, dtype=float):
 
 # Extract features
 df['year'] = extract_year(df['title'])
-df[['make', 'model']] = df['title'].str.extract(r'^\d{4}\s+(.+?)\s+(.+)$')
+df[['make', 'model']] = df['title'].str.extract(r'^\d{4}\s+(\S+)\s+(.+)$')
 
 # Clean numericals
 df['price'] = clean_numeric(df['price'])
@@ -165,7 +166,7 @@ def save_model(model, features, numerical_cols):
         'features': list(features.columns),
         'numerical_cols': numerical_cols,
         'preprocessing': {
-            'year_regex': r'(?:19|20)\d{2}',
+            'year_regex': r'.*\b((?:19|20)\d{2})\b.*',
             'required_cols': ['title', 'price', 'kilometres'],
             'min_values': {
                 'price': 500,

@@ -6,4 +6,11 @@ recommender = CarRecommender()
 
 @router.get("/")
 async def get_recommendations(budget: float, seats: int):
-    return recommender.recommend(budget, seats)
+    try:
+        recommendations = recommender.recommend(budget, seats)
+        return {
+            "count": len(recommendations),
+            "results": recommendations
+        }
+    except Exception as e:
+        return {"error": str(e)}

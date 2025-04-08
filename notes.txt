@@ -1,0 +1,4 @@
+Mar 27: Working on the front and back end of the AI. Currently getting a 'ValueError("pattern contains no caputure groups"). 
+Might something to do with the training
+
+April 7th: Got it to work. Now need to develop front end so that it looks good!
