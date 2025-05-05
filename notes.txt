@@ -1,4 +1,7 @@
 Mar 27: Working on the front and back end of the AI. Currently getting a 'ValueError("pattern contains no caputure groups"). 
 Might something to do with the training
 
-April 7th: Got it to work. Now need to develop front end so that it looks good!
+April 7th: Got it to work. Now need to develop front end so that it looks good! Sent it into vercel, didn't change much. I also
+found out that it for some reason doesn't respond to anything that isn't 5 seats. Oddessey was 8 seats and it didn't recognize
+when I selected 8 seats. - an idea just popped up. Instead of entering numbers for seats, make it a drop down from the values 
+in the CSV
